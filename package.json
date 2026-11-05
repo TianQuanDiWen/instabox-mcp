@@ -1,6 +1,6 @@
 {
   "name": "instabox-mcp",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Remote MCP server for InstaBox cloud machines, with built-in single-user OAuth",
   "type": "module",
   "main": "dist/index.js",
@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsc && node --test test/*.test.mjs"
   },
   "engines": {
     "node": ">=20"

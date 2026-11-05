@@ -21,6 +21,10 @@ Lifecycle tools wait up to ~45s (web clients time out around a minute) and other
 operation ID to follow with `get_operation`. Long commands should use `run_command` with
 `background: true`, which logs to `~/.mcp-jobs/<job>.log` in the machine.
 
+`delete_machine` and `delete_snapshot` send InstaBox's `X-Confirm-Delete` header with the ID
+(or machine name) the tool was called with, as the API now requires. If InstaBox still answers
+`409 delete_confirmation_required`, the tool returns that error and nothing is deleted.
+
 ## Computer use
 
 Machines have an optional Linux desktop (Xfce + Chromium). The model can see and drive it:
@@ -145,6 +149,7 @@ then `/mcp` to sign in). If you'd rather skip the browser, set `MCP_BEARER_TOKEN
     npm install
     cp .env.example .env   # PUBLIC_URL=http://localhost:3000
     npm run build && node --env-file=.env dist/index.js
+    npm test               # builds, then runs test/*.test.mjs against a mock InstaBox API
 
 Test with `npx @modelcontextprotocol/inspector` against `http://localhost:3000/mcp`.
 

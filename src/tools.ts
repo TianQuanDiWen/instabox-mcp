@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { api, waitForOperation, type Operation } from "./instabox.js";
+import { api, confirmDelete, waitForOperation, type Operation } from "./instabox.js";
 import { proxySelection, envSelection } from "./secrets.js";
 
 const text = (data: unknown) => ({
@@ -82,7 +82,7 @@ export function registerTools(server: McpServer) {
     inputSchema: { id: idArg, wait: waitArg },
     annotations: destructive,
   }, handler(async ({ id, wait }) => {
-    const op = await api<Operation>("DELETE", m(id), { idempotent: true });
+    const op = await api<Operation>("DELETE", m(id), { idempotent: true, headers: confirmDelete(id) });
     return wait ? waitForOperation(op) : op;
   }));
 
@@ -157,8 +157,8 @@ export function registerTools(server: McpServer) {
     inputSchema: { id: idArg, name: z.string(), description: z.string().optional(), rootOnly: z.boolean().optional().describe("Software only, empty home") },
     annotations: { openWorldHint: true },
   }, handler(({ id, ...body }) => api("POST", `${m(id)}/snapshots`, { body, idempotent: true })));
-  server.registerTool("delete_snapshot", { description: "Delete a snapshot. Irreversible.", inputSchema: { snapshotId: z.string() }, annotations: destructive },
-    handler(({ snapshotId }) => api("DELETE", `/v1/snapshots/${encodeURIComponent(snapshotId)}`, { idempotent: true })));
+  server.registerTool("delete_snapshot", { description: "Delete a snapshot. Irreversible.", inputSchema: { snapshotId: z.string().describe("Snapshot ID (sn_...)") }, annotations: destructive },
+    handler(({ snapshotId }) => api("DELETE", `/v1/snapshots/${encodeURIComponent(snapshotId)}`, { idempotent: true, headers: confirmDelete(snapshotId) })));
 
   // ---------- Public ports
   server.registerTool("publish_port", {

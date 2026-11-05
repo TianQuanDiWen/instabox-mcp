@@ -8,7 +8,7 @@ export class InstaBoxError extends Error {}
 export async function api<T = any>(
   method: string,
   path: string,
-  opts: { body?: unknown; query?: Query; idempotent?: boolean } = {},
+  opts: { body?: unknown; query?: Query; idempotent?: boolean; headers?: Record<string, string> } = {},
 ): Promise<T> {
   const url = new URL(config.instaboxApiUrl + path);
   for (const [k, v] of Object.entries(opts.query ?? {})) {
@@ -18,6 +18,7 @@ export async function api<T = any>(
   const headers: Record<string, string> = { "X-API-Key": config.instaboxApiKey, Accept: "application/json" };
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   if (opts.idempotent) headers["Idempotency-Key"] = randomUUID();
+  Object.assign(headers, opts.headers);
 
   const res = await fetch(url, {
     method,
@@ -40,6 +41,13 @@ export async function api<T = any>(
   }
   return data as T;
 }
+
+/**
+ * Header InstaBox checks on machine and snapshot deletes: the ID or exact name of what is being
+ * deleted. Anything else (or, for newer API keys, leaving it out) is 409 delete_confirmation_required
+ * and nothing is deleted.
+ */
+export const confirmDelete = (idOrName: string) => ({ "X-Confirm-Delete": idOrName });
 
 export interface Operation {
   id: string;
